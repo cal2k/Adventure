@@ -183,10 +183,10 @@ namespace Adventure
     }
     class Dialogue
     {
-        static public string wdud = "What do you do?";
+        static public string wdud = "What do you do?", read;
         static public string Chat, optionsworking, lookupsworking;
         static public string[] Options = new string[5], Lookup = new string[5];
-
+        static public int input, workingID, count;
         static public void chatcontroller()
         {
             Querys.query = "SELECT * from dialogue where id = '" + Character.CurrentID + "'";
@@ -198,13 +198,44 @@ namespace Adventure
             Console.WriteLine(Dialogue.Chat);
             Console.WriteLine();
             Console.WriteLine(Dialogue.wdud);
+            Console.WriteLine();
 
-            int count = Dialogue.Options.Count();
+            count = Dialogue.Options.Count();
             for (int i = 0; i < count; i++)
             {
                 Console.WriteLine(Dialogue.Options[i]);
             }
-            Console.Read();
+
+            read = Console.ReadLine();
+            ValidInput();
+        }
+
+        static public void ValidInput()
+        {
+
+            try
+            {
+                input = Convert.ToInt32(read);
+            }
+            catch(Exception ex)
+            {
+                Console.Clear();
+                chatcontroller();
+            }
+
+            input = input - 1;
+            if (input >= Dialogue.count)
+            {
+                Console.Clear();
+                chatcontroller();
+            }
+            else
+            {
+                Console.Clear();
+                workingID = Convert.ToInt32(Lookup[input]);
+                Character.CurrentID = workingID;
+                chatcontroller();
+            }
         }
 
        
