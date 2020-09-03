@@ -31,9 +31,11 @@ namespace Adventure
             if (Querys.count > 0)
             {
                 Console.Clear();
-                Querys.query = "select * from char where name = '" + Character.Name + "'";
+                Querys.query = "SELECT * from char where name = '" + Character.Name + "'";
+                Console.ReadLine();
                 Querys.SelectCharFunc();
-               // Character.SetChar();
+                Console.ReadLine();
+                // Character.SetChar();
 
             }
             else
@@ -142,9 +144,7 @@ namespace Adventure
                         {
                             while (reader.Read())
                             {
-                                string temp = reader.ToString();
-                                templist.Add(temp.ToString());
-                                Console.WriteLine(temp);
+                                Console.WriteLine(reader.ToString());
                                 Console.ReadLine();
                             }
                         }
