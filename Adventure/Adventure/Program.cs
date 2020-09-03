@@ -32,14 +32,13 @@ namespace Adventure
             {
                 Console.Clear();
                 Querys.query = "SELECT * from char where name = '" + Character.Name + "'";
-                Console.ReadLine();
                 Querys.SelectCharFunc();
-                Console.ReadLine();
-                // Character.SetChar();
+                //gose to chat controller. using the users currentid to load correct place
 
             }
             else
             {
+                Console.Clear();
                 Character.Health = 10;
                 Character.Wounds = 0;
                 Character.Items = "x";
@@ -53,19 +52,9 @@ namespace Adventure
                 "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "')";
 
                 Querys.InsertFunc();
-
-                //go to "taven" GAME START!
+                
+                //chat controller to load relevent 
             }
-        }
-        static public void SetChar()
-        {
-            Health = Convert.ToInt32(Querys.templist[2]);
-            Wounds = Convert.ToInt32(Querys.templist[3]);
-            Items = Querys.templist[4];
-            Armor = Querys.templist[5];
-            Weapon = Querys.templist[6];
-            Gold = Convert.ToInt32(Querys.templist[7]);
-            CurrentID = Convert.ToInt32(Querys.templist[8]);
         }
     }
     class Querys
@@ -144,8 +133,42 @@ namespace Adventure
                         {
                             while (reader.Read())
                             {
-                                Console.WriteLine(reader.ToString());
-                                Console.ReadLine();
+                                Character.Health = reader.GetInt32(2);
+                                Character.Wounds = reader.GetInt32(3);
+                                Character.Items = reader.GetString(4);
+                                Character.Armor = reader.GetString(5);
+                                Character.Weapon = reader.GetString(6);
+                                Character.Gold = reader.GetInt32(7);
+                                Character.CurrentID = reader.GetInt32(8);
+                            }
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        static public void SelectChat()
+        {
+            cmd = new SQLiteCommand(query, conn);
+            try
+            {
+                using (conn)
+                {
+                    conn.Open();
+                    using (cmd)
+                    {
+                        using (reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Dialogue.Chat = reader.GetString(1);
+                                Dialogue.optionsworking = reader.GetString(2);
+                                Dialogue.lookupsworking = reader.GetString(3);
                             }
                         }
                     }
@@ -160,24 +183,34 @@ namespace Adventure
     }
     class Dialogue
     {
-        static private string chat;
-        static private string[] options = new string[5];
-        static private int[] lookups = new int[5];
+        static public string wdud = "What do you do?";
+        static public string Chat, optionsworking, lookupsworking;
+        static public string[] Options = new string[5], Lookup = new string[5];
 
-        static public string Chat;
-        static public string[] Options = new string[5];
-        static public int[] Lookups = new int[5];
-
-        static public void Gather()
+        static public void chatcontroller()
         {
-            
+            Querys.query = "SELECT * from dialogue where id = '" + Character.CurrentID + "'";
+            Querys.SelectChat();
+
+            Dialogue.Options = Dialogue.optionsworking.Split(',');
+            Dialogue.Lookup = Dialogue.lookupsworking.Split(',');
+
+            Console.WriteLine(Dialogue.Chat);
+            Console.WriteLine();
+            Console.WriteLine(Dialogue.wdud);
+
+            int count = Dialogue.Options.Count();
+            for (int i = 0; i < count; i++)
+            {
+                Console.WriteLine(Dialogue.Options[i]);
+            }
+            Console.Read();
         }
+
+       
     }
     class Program
     {
-        static string wdud = "What do you do?", read;
-        static int choice;
-        static List<string> options = new List<string>();
         static bool valid = false;
 
         static void Main(string[] args)
@@ -203,109 +236,11 @@ namespace Adventure
                 Character.Name = Console.ReadLine();
 
                 Character.CheckName();
-                    
-                Console.Clear();
+                Dialogue.chatcontroller();
+                
             }
         }
-
         
-        static void validselection()
-        {
-            try
-            {
-                options.Clear();
-                Console.Clear(); 
-                choice = Convert.ToInt32(read);
-            }
-            catch (Exception)
-            {
-                Console.Clear();
-            }
-            
-        }
-
-        static void taven()
-        {
-            while (valid == false)
-            {
-                options.Add("1 - Investigate commotion.");
-                options.Add("2 - Finish eating meal.");
-
-                Console.WriteLine("You're sat eating a meal in the Scotney taven when you hear a commotion in the streets outside.");
-                Console.WriteLine();
-                Console.WriteLine(wdud);
-                Console.WriteLine();
-                for (int i = 0; i < options.Count(); i++)
-                {
-                    Console.WriteLine(options[i]);
-                }
-
-                read = Console.ReadLine();
-
-                validselection();
-
-                switch(choice)
-                {
-                    case 1:
-                        investigatecommotion();
-                        break;
-                    case 2:
-                        meal();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        static void meal()
-        {
-            while (valid == false)
-            {
-                options.Clear();
-                options.Add("1 - Investigate commontion.");
-                options.Add("2 - Buy Drink");
-                options.Add("3 - Do nothing");
-
-
-                Console.WriteLine("As you finish your meal you hear the commotion growing louder.");
-                Console.WriteLine(wdud);
-                Character.Health = Character.Health + 1;
-                Console.WriteLine("");
-
-                for (int i = 0; i < options.Count; i++)
-                {
-                    Console.WriteLine(options[i]);
-                }
-
-                read = Console.ReadLine();
-
-                validselection();
-               
-                switch (choice)
-                {
-                    case 1:
-                        investigatecommotion();
-                        break;
-                    case 2:
-                        //drink();
-                        break;
-                    case 3:
-                        //nothing();
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        static void investigatecommotion()
-        {
-            Console.WriteLine("outside");
-            Console.ReadLine();
-        }
         
     }
-
-    
 }
