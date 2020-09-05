@@ -169,6 +169,7 @@ namespace Adventure
                                 Dialogue.Chat = reader.GetString(1);
                                 Dialogue.optionsworking = reader.GetString(2);
                                 Dialogue.lookupsworking = reader.GetString(3);
+                                Dialogue.bonusworking = reader.GetString(4);
                             }
                         }
                     }
@@ -184,17 +185,22 @@ namespace Adventure
     class Dialogue
     {
         static public string wdud = "What do you do?", read;
-        static public string Chat, optionsworking, lookupsworking;
-        static public string[] Options = new string[5], Lookup = new string[5];
+        static public string Chat, optionsworking, lookupsworking, bonusworking;
+        static public string[] Options = new string[5], Lookup = new string[5], Bonus = new string [5];
         static public int input, workingID, count;
         static public void chatcontroller()
         {
             Querys.query = "SELECT * from dialogue where id = '" + Character.CurrentID + "'";
             Querys.SelectChat();
 
-            Dialogue.Options = Dialogue.optionsworking.Split(',');
-            Dialogue.Lookup = Dialogue.lookupsworking.Split(',');
+            Options = optionsworking.Split(',');
+            Lookup = lookupsworking.Split(',');
 
+            if(bonusworking != "x")
+            {
+                loot.DialogueBonus();
+            }
+            
             Console.WriteLine(Dialogue.Chat);
             Console.WriteLine();
             Console.WriteLine(Dialogue.wdud);
@@ -239,6 +245,18 @@ namespace Adventure
         }
 
        
+    }
+    class Combat
+    {
+
+    }
+    class loot
+    {
+        static public void DialogueBonus()
+        {
+            Console.WriteLine("HERE");
+            Console.ReadLine();
+        }
     }
     class Program
     {
