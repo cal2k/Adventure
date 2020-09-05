@@ -186,8 +186,8 @@ namespace Adventure
     {
         static public string wdud = "What do you do?", read;
         static public string Chat, optionsworking, lookupsworking, bonusworking;
-        static public string[] Options = new string[5], Lookup = new string[5], Bonus = new string [5];
-        static public int input, workingID, count;
+        static public string[] Options = new string[5], Lookup = new string[5];
+        static public int input, count;
         static public void chatcontroller()
         {
             Querys.query = "SELECT * from dialogue where id = '" + Character.CurrentID + "'";
@@ -195,11 +195,7 @@ namespace Adventure
 
             Options = optionsworking.Split(',');
             Lookup = lookupsworking.Split(',');
-
-            if(bonusworking != "x")
-            {
-                loot.DialogueBonus();
-            }
+            loot.DialogueBonus();
             
             Console.WriteLine(Dialogue.Chat);
             Console.WriteLine();
@@ -238,8 +234,9 @@ namespace Adventure
             else
             {
                 Console.Clear();
-                workingID = Convert.ToInt32(Lookup[input]);
-                Character.CurrentID = workingID;
+                Character.CurrentID = Convert.ToInt32(Lookup[input]);
+                Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
+                Querys.InsertFunc();
                 chatcontroller();
             }
         }
@@ -254,8 +251,45 @@ namespace Adventure
     {
         static public void DialogueBonus()
         {
-            Console.WriteLine("HERE");
-            Console.ReadLine();
+            if (Dialogue.bonusworking != "x")
+            {
+                if (Dialogue.bonusworking.StartsWith("G"))
+                {
+                    int i = Convert.ToInt32(Dialogue.bonusworking.Substring(1));
+                    Character.Gold = Character.Gold + i;
+                    Querys.query = "update char set gold = '" + Character.Gold + "' where name = '" + Character.Name + "'";
+                    Querys.InsertFunc();
+                }
+                if (Dialogue.bonusworking.StartsWith("W"))
+                {
+                    Character.Weapon = Dialogue.bonusworking.Substring(1);
+                    Querys.query = "update char set weapon = '" + Character.Weapon + "' where name = '" + Character.Name + "'";
+                    Querys.InsertFunc(); 
+                }
+                if (Dialogue.bonusworking.StartsWith("A"))
+                {
+                    Character.Armor = Dialogue.bonusworking.Substring(1); 
+                    Querys.query = "update char set armor = '" + Character.Armor + "' where name = '" + Character.Name + "'";
+                    Querys.InsertFunc();
+                    Console.ReadLine();
+                }
+                if (Dialogue.bonusworking.StartsWith("H"))
+                {
+                    
+                    int i = Convert.ToInt32(Dialogue.bonusworking.Substring(1));
+                    int ii = Character.Health;
+                    Character.Health = ii + i;
+                    Querys.query = "update char set health = '" + Character.Health + "' where name = '" + Character.Name + "'";
+                    Querys.InsertFunc();
+                }
+                if (Dialogue.bonusworking.StartsWith("D"))
+                {
+                    int i = Convert.ToInt32(Dialogue.bonusworking.Substring(1));
+                    Character.Health = Character.Health - i;
+                    Querys.query = "update char set health = '" + Character.Health + "' where name = '" + Character.Name + "'";
+                    Querys.InsertFunc();
+                }
+            }
         }
     }
     class Program
