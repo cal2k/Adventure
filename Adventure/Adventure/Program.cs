@@ -9,17 +9,19 @@ namespace Adventure
 {
     class Character
     {
-        private static string name, items, armor, weapon;
-        private static int health, wounds, gold, currentid;
+        private static string name, items, armor, weapon, locationlookup;
+        private static int health, wounds, gold, currentid, locationid;
         public static string Name { get { return name; } set { name = value; } }
         public static string Items { get { return items; } set { items = value; } }
         public static string Armor { get { return armor; } set { armor = value; } }
         public static string Weapon { get { return weapon; } set { weapon = value; } }
+        public static string LocationLookup { get { return locationlookup; } set { locationlookup = value; } }
 
         public static int Health { get { return health; } set { health = value; } }
         public static int Wounds { get { return wounds; } set { wounds = value; } }
         public static int Gold { get { return gold; } set { gold = value; } }
         public static int CurrentID { get { return currentid; } set { currentid = value; } }
+        public static int LocationID {  get { return locationid; } set { locationid = value; } }
 
 
         static public void CheckName()
@@ -33,8 +35,6 @@ namespace Adventure
                 Console.Clear();
                 Querys.query = "SELECT * from char where name = '" + Character.Name + "'";
                 Querys.SelectCharFunc();
-                //gose to chat controller. using the users currentid to load correct place
-
             }
             else
             {
@@ -46,10 +46,11 @@ namespace Adventure
                 Character.Weapon = "x";
                 Character.Gold = 5;
                 Character.CurrentID = 1;
+                Character.locationid = 1;
 
                 Querys.query = "insert into char (name, health, wounds, items, armor, weapon, gold, currentid)" +
                 "values('" + Character.Name + "', '" + Character.Health + "', '" + Character.Wounds + "', '" + Character.Items +
-                "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "')";
+                "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "', '" + Character.LocationID + "')";
 
                 Querys.InsertFunc();
                 
@@ -170,6 +171,35 @@ namespace Adventure
                                 Dialogue.optionsworking = reader.GetString(2);
                                 Dialogue.lookupsworking = reader.GetString(3);
                                 Dialogue.bonusworking = reader.GetString(4);
+                                Character.LocationLookup = reader.GetString(5);
+                                
+                            }
+                        }
+                    }
+                    conn.Close();
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        static public void SelectLocation()
+        {
+            cmd = new SQLiteCommand(query, conn);
+            try
+            {
+                using (conn)
+                {
+                    conn.Open();
+                    using (cmd)
+                    {
+                        using (reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                Character.LocationLookup = reader.GetString(0);
                             }
                         }
                     }
@@ -182,7 +212,7 @@ namespace Adventure
             }
         }
     }
-    class Dialogue
+    class Dialogue  
     {
         static public string wdud = "What do you do?", read;
         static public string Chat, optionsworking, lookupsworking, bonusworking;
@@ -190,12 +220,27 @@ namespace Adventure
         static public int input, count;
         static public void chatcontroller()
         {
-            Querys.query = "SELECT * from dialogue where id = '" + Character.CurrentID + "'";
+            Querys.query = "SELECT * from scotney where id = '" + Character.CurrentID + "'";
             Querys.SelectChat();
 
             Options = optionsworking.Split(',');
             Lookup = lookupsworking.Split(',');
             loot.DialogueBonus();
+
+            if(Character.LocationLookup != "x")
+            {
+                Character.LocationID = Convert.ToInt32(Character.LocationLookup);
+                Querys.query = "Select name from locations where ref = '" + Character.LocationID + "'";
+                Querys.SelectLocation();
+
+                Character.CurrentID = 1;
+                Querys.query = "select * from '" + Character.LocationLookup + "' where id = '" + Character.CurrentID + "'";
+                Querys.SelectChat();
+
+                Options = optionsworking.Split(',');
+                Lookup = lookupsworking.Split(',');
+                loot.DialogueBonus();
+            }
             
             Console.WriteLine(Dialogue.Chat);
             Console.WriteLine();
@@ -210,6 +255,11 @@ namespace Adventure
 
             read = Console.ReadLine();
             ValidInput();
+        }
+
+        static public void locationlook()
+        {
+            
         }
 
         static public void ValidInput()
@@ -290,6 +340,11 @@ namespace Adventure
                     Querys.InsertFunc();
                 }
             }
+        }
+
+        static public void Random()
+        {
+
         }
     }
     class Program
