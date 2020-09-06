@@ -9,6 +9,8 @@ namespace Adventure
 {
     class Character
     {
+        public static string temp;
+
         private static string name, items, armor, weapon, locationlookup;
         private static int health, wounds, gold, currentid, locationid;
         public static string Name { get { return name; } set { name = value; } }
@@ -23,22 +25,29 @@ namespace Adventure
         public static int CurrentID { get { return currentid; } set { currentid = value; } }
         public static int LocationID {  get { return locationid; } set { locationid = value; } }
 
+        private static bool valid = false;
 
-        static public void CheckName()
+        //new char
+        public static void NewChar()
+        {
+            while (valid == false)
+            {
+                Console.WriteLine("Character's name:");
+                Name = Console.ReadLine();
+                validname();
+            }
+        }
+        private static void validname()
         {
             Querys.query = "SELECT COUNT (name) from char WHERE name = '" + Character.Name + "'";
-
-            Querys.CountFunc();
-
-            if (Querys.count > 0)
+            Querys.Count();
+            if(Querys.count>0)
             {
                 Console.Clear();
-                Querys.query = "SELECT * from char where name = '" + Character.Name + "'";
-                Querys.SelectCharFunc();
+                Console.WriteLine("Character name already in use.");
             }
             else
             {
-                Console.Clear();
                 Character.Health = 10;
                 Character.Wounds = 0;
                 Character.Items = "x";
@@ -48,14 +57,39 @@ namespace Adventure
                 Character.CurrentID = 1;
                 Character.locationid = 1;
 
-                Querys.query = "insert into char (name, health, wounds, items, armor, weapon, gold, currentid)" +
+                Querys.query = "insert into char (name, health, wounds, items, armor, weapon, gold, currentid, locationid)" +
                 "values('" + Character.Name + "', '" + Character.Health + "', '" + Character.Wounds + "', '" + Character.Items +
                 "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "', '" + Character.LocationID + "')";
 
-                Querys.InsertFunc();
-                
-                //chat controller to load relevent 
+                Querys.Insert();
             }
+        }
+
+        //load char
+        public static void LoadChar()
+        {
+            Querys.query = "select * from char where name = '" + Name + "'";
+            Querys.LoadChar();
+            Program.game();
+        }
+
+        public static void UserInputs()
+        {
+            if (temp == "I")
+            {
+                Inventory();
+            }
+        }
+        public static void Inventory()
+        {
+            Console.WriteLine("Inventory");
+            Console.ReadLine();
+            //triggerd by user input i
+            //gather list of items weapons and armor on character split and display list with number for selection
+            //equip item by typing equip + item number
+            //updates char table
+            //runs load char to get back to the same spot
+            
         }
     }
     class Querys
@@ -69,7 +103,7 @@ namespace Adventure
 
         static public List<string> templist = new List<string>();
 
-        static public void CountFunc()
+        static public void Count()
         {
             cmd = new SQLiteCommand(query, conn);
             try
@@ -97,7 +131,7 @@ namespace Adventure
             }
         }
 
-        static public void InsertFunc()
+        static public void Insert()
         {
             cmd = new SQLiteCommand(query, conn);
             try
@@ -120,7 +154,7 @@ namespace Adventure
             Console.Clear();
         }
 
-        static public void SelectCharFunc()
+        static public void LoadChar()
         {
             cmd = new SQLiteCommand(query, conn);
             try
@@ -141,6 +175,7 @@ namespace Adventure
                                 Character.Weapon = reader.GetString(6);
                                 Character.Gold = reader.GetInt32(7);
                                 Character.CurrentID = reader.GetInt32(8);
+                                Character.LocationID = reader.GetInt32(9);
                             }
                         }
                     }
@@ -286,7 +321,7 @@ namespace Adventure
                 Console.Clear();
                 Character.CurrentID = Convert.ToInt32(Lookup[input]);
                 Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
-                Querys.InsertFunc();
+                Querys.Insert();
                 chatcontroller();
             }
         }
@@ -308,19 +343,19 @@ namespace Adventure
                     int i = Convert.ToInt32(Dialogue.bonusworking.Substring(1));
                     Character.Gold = Character.Gold + i;
                     Querys.query = "update char set gold = '" + Character.Gold + "' where name = '" + Character.Name + "'";
-                    Querys.InsertFunc();
+                    Querys.Insert();
                 }
                 if (Dialogue.bonusworking.StartsWith("W"))
                 {
                     Character.Weapon = Dialogue.bonusworking.Substring(1);
                     Querys.query = "update char set weapon = '" + Character.Weapon + "' where name = '" + Character.Name + "'";
-                    Querys.InsertFunc(); 
+                    Querys.Insert(); 
                 }
                 if (Dialogue.bonusworking.StartsWith("A"))
                 {
                     Character.Armor = Dialogue.bonusworking.Substring(1); 
                     Querys.query = "update char set armor = '" + Character.Armor + "' where name = '" + Character.Name + "'";
-                    Querys.InsertFunc();
+                    Querys.Insert();
                     Console.ReadLine();
                 }
                 if (Dialogue.bonusworking.StartsWith("H"))
@@ -330,14 +365,14 @@ namespace Adventure
                     int ii = Character.Health;
                     Character.Health = ii + i;
                     Querys.query = "update char set health = '" + Character.Health + "' where name = '" + Character.Name + "'";
-                    Querys.InsertFunc();
+                    Querys.Insert();
                 }
                 if (Dialogue.bonusworking.StartsWith("D"))
                 {
                     int i = Convert.ToInt32(Dialogue.bonusworking.Substring(1));
                     Character.Health = Character.Health - i;
                     Querys.query = "update char set health = '" + Character.Health + "' where name = '" + Character.Name + "'";
-                    Querys.InsertFunc();
+                    Querys.Insert();
                 }
             }
         }
@@ -349,36 +384,71 @@ namespace Adventure
     }
     class Program
     {
-        static bool valid = false;
-
         static void Main(string[] args)
         {
             menu();
         }
         static void menu()
         {
+            bool valid = false;
+            string menutext = "1 - New Game,2 - Load Character,3 - Quit";
+            string[] menu = menutext.Split(',');
+            int input;
 
             while (valid == false)
             {
-                Console.WriteLine(" ___                             _   _    _ _                  _");
-                Console.WriteLine("| _ \\  ___  ___  __  __  ___  __||  | | / /|_| __   __ ____  __|| ___  __  __");
-                Console.WriteLine("|| || | _ || _ ||  \\/  || o_|| _ |  | |/ /  _ |  \\ | || _  || _ || _ ||  \\/  |");
-                Console.WriteLine("||_|| ||_||||_||| |\\/| || |_ ||_||  | |\\ \\ | || |\\\\| |||_| |||_||||_||| |\\/| |");
-                Console.WriteLine("|___/ |___||___||_|  |_||___||___|  |_| \\_\\|_||_| \\__||___ ||___||___||_|  |_|");
-                Console.WriteLine("                                                      | |_||");
-                Console.WriteLine("                                                      |____|");
+                Console.WriteLine(" ___                             _    _   _                     _");
+                Console.WriteLine("| _ \\  ___  ___  __  __  ___  __| |  | | / / 0  __   __ ___  __| | ___  __  __");
+                Console.WriteLine("|| || |   ||   ||  \\/  || 0_||    |  | |/ /  _ |  \\ | ||   ||    ||   ||  \\/  |");
+                Console.WriteLine("||_|| | 0 || 0 || |\\/| || |_ | 0  |  | |\\ \\ | || |\\\\| ||0  || 0  || 0 || |\\/| |");
+                Console.WriteLine("|___/ |___||___||_|  |_||___||____|  |_| \\_\\|_||_| \\__||__ ||____||___||_|  |_|");
+                Console.WriteLine("                                                       ||_||");
+                Console.WriteLine("                                                       |___|");
                 Console.WriteLine("");
-                Console.WriteLine("Please enter your name.");
+               
+                for(int i = 0; i < menu.Count(); i ++)
+                {
+                    Console.WriteLine(menu[i]);
+                }
 
+                Character.temp = Console.ReadLine();
+                Character.UserInputs();
+                try
+                {
+                    input = Convert.ToInt32(Character.temp);
+                    switch(input)
+                    {
+                        case 1:
+                            Console.Clear();
+                            Character.NewChar();
+                            break;
+                        case 2:
+                            Console.Clear();
+                            Character.LoadChar();
+                            break;
+                        case 3:
+                            Environment.Exit(0);
+                            break;
+                        default:
+                            Console.Clear();
+                            Console.WriteLine("Invalid selection");
+                            break;
 
-                Character.Name = Console.ReadLine();
-
-                Character.CheckName();
-                Dialogue.chatcontroller();
-                
+                    }
+                }
+                catch(Exception)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Invalid selection");
+                }                
             }
         }
-        
-        
+
+        public static void game()
+        {
+            Console.WriteLine("Ingame");
+            Console.ReadLine();
+            Environment.Exit(0);
+        }
     }
 }
