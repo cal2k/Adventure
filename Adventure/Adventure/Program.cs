@@ -68,11 +68,19 @@ namespace Adventure
         //load char
         public static void LoadChar()
         {
+            Console.WriteLine("Characters name?");
+            Name = Console.ReadLine();
             Querys.query = "select * from char where name = '" + Name + "'";
             Querys.LoadChar();
+            Console.WriteLine(Character.Health);
             Program.game();
         }
-
+        static public void SaveChar()
+        {
+            Querys.query = "update char set health = '" + health + "', wounds = '" + Wounds + "', items = '" + items + "', armor = '" + armor + "', weapon = '" + weapon + "', gold = '" + 
+                gold + "', currentid = '" + currentid + "', locationid = '" + LocationID + "' where name = '" + Name + "'";
+            Querys.Insert();
+        }
         public static void UserInputs()
         {
             if (temp == "I")
@@ -188,6 +196,8 @@ namespace Adventure
             }
         }
 
+        
+
         static public void SelectChat()
         {
             cmd = new SQLiteCommand(query, conn);
@@ -294,7 +304,8 @@ namespace Adventure
 
         static public void locationlook()
         {
-            
+            Querys.query = "SELECT * from scotney where id = '" + Character.CurrentID + "'";
+            Querys.SelectChat();
         }
 
         static public void ValidInput()
@@ -330,7 +341,10 @@ namespace Adventure
     }
     class Combat
     {
+        static public void hostile()
+        {
 
+        }
     }
     class loot
     {
@@ -446,9 +460,9 @@ namespace Adventure
 
         public static void game()
         {
-            Console.WriteLine("Ingame");
-            Console.ReadLine();
-            Environment.Exit(0);
+            Character.SaveChar();
+            Combat.hostile();
+
         }
     }
 }
