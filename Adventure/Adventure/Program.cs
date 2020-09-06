@@ -24,18 +24,15 @@ namespace Adventure
         public static int Gold { get { return gold; } set { gold = value; } }
         public static int CurrentID { get { return currentid; } set { currentid = value; } }
         public static int LocationID {  get { return locationid; } set { locationid = value; } }
-
+        static public int input;
         private static bool valid = false;
 
         //new char
         public static void NewChar()
         {
-            while (valid == false)
-            {
                 Console.WriteLine("Character's name:");
                 Name = Console.ReadLine();
                 validname();
-            }
         }
         private static void validname()
         {
@@ -62,6 +59,7 @@ namespace Adventure
                 "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "', '" + Character.LocationID + "')";
 
                 Querys.Insert();
+                Program.game();
             }
         }
 
@@ -72,7 +70,6 @@ namespace Adventure
             Name = Console.ReadLine();
             Querys.query = "select * from char where name = '" + Name + "'";
             Querys.LoadChar();
-            Console.WriteLine(Character.Health);
             Program.game();
         }
         static public void SaveChar()
@@ -81,11 +78,41 @@ namespace Adventure
                 gold + "', currentid = '" + currentid + "', locationid = '" + LocationID + "' where name = '" + Name + "'";
             Querys.Insert();
         }
+
+
         public static void UserInputs()
         {
             if (temp == "I")
             {
                 Inventory();
+            }
+            else
+            {
+                //check if option selection is valid
+                try
+                {
+                    input = Convert.ToInt32(temp);
+                }
+                catch (Exception ex)
+                {
+                    Console.Clear();
+                    Dialogue.displaychat();
+                }
+
+                input = input - 1;
+                if (input >= Dialogue.count)
+                {
+                    Console.Clear();
+                    Dialogue.displaychat();
+                }
+                else
+                {
+                    Console.Clear();
+                    Character.CurrentID = Convert.ToInt32(Character.LocationLookup[input]);
+                    Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
+                    Querys.Insert();
+                    Dialogue.displaychat();
+                }
             }
         }
         public static void Inventory()
@@ -196,8 +223,6 @@ namespace Adventure
             }
         }
 
-        
-
         static public void SelectChat()
         {
             cmd = new SQLiteCommand(query, conn);
@@ -244,7 +269,7 @@ namespace Adventure
                         {
                             while (reader.Read())
                             {
-                                Character.LocationLookup = reader.GetString(0);
+                                Character.temp = reader.GetString(0);
                             }
                         }
                     }
@@ -262,82 +287,34 @@ namespace Adventure
         static public string wdud = "What do you do?", read;
         static public string Chat, optionsworking, lookupsworking, bonusworking;
         static public string[] Options = new string[5], Lookup = new string[5];
-        static public int input, count;
-        static public void chatcontroller()
-        {
-            Querys.query = "SELECT * from scotney where id = '" + Character.CurrentID + "'";
-            Querys.SelectChat();
-
-            Options = optionsworking.Split(',');
-            Lookup = lookupsworking.Split(',');
-            loot.DialogueBonus();
-
-            if(Character.LocationLookup != "x")
-            {
-                Character.LocationID = Convert.ToInt32(Character.LocationLookup);
-                Querys.query = "Select name from locations where ref = '" + Character.LocationID + "'";
-                Querys.SelectLocation();
-
-                Character.CurrentID = 1;
-                Querys.query = "select * from '" + Character.LocationLookup + "' where id = '" + Character.CurrentID + "'";
-                Querys.SelectChat();
-
-                Options = optionsworking.Split(',');
-                Lookup = lookupsworking.Split(',');
-                loot.DialogueBonus();
-            }
-            
-            Console.WriteLine(Dialogue.Chat);
-            Console.WriteLine();
-            Console.WriteLine(Dialogue.wdud);
-            Console.WriteLine();
-
-            count = Dialogue.Options.Count();
-            for (int i = 0; i < count; i++)
-            {
-                Console.WriteLine(Dialogue.Options[i]);
-            }
-
-            read = Console.ReadLine();
-            ValidInput();
-        }
+        static public int count;
 
         static public void locationlook()
         {
-            Querys.query = "SELECT * from scotney where id = '" + Character.CurrentID + "'";
-            Querys.SelectChat();
+            Querys.query = "Select name from locations where ref = '" + Character.LocationID + "'";
+            Querys.SelectLocation();
         }
-
-        static public void ValidInput()
+        static public void gatherchat()
         {
-
-            try
-            {
-                input = Convert.ToInt32(read);
-            }
-            catch(Exception ex)
-            {
-                Console.Clear();
-                chatcontroller();
-            }
-
-            input = input - 1;
-            if (input >= Dialogue.count)
-            {
-                Console.Clear();
-                chatcontroller();
-            }
-            else
-            {
-                Console.Clear();
-                Character.CurrentID = Convert.ToInt32(Lookup[input]);
-                Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
-                Querys.Insert();
-                chatcontroller();
-            }
+            Querys.query = "Select * from '" + Character.temp + "' where id = '" + Character.CurrentID + "'";
+            Querys.SelectChat();
+            Options = optionsworking.Split(',');
+            Lookup = lookupsworking.Split(',');
         }
+        static public void displaychat()
+        {
+            Console.WriteLine(Chat);
+            Console.WriteLine();
+            Console.WriteLine(wdud);
+            Console.WriteLine();
 
-       
+            count = Options.Count();
+            for (int i = 0; i < count; i++)
+            {
+                Console.WriteLine(Options[i]);
+            }
+
+        }
     }
     class Combat
     {
@@ -462,7 +439,14 @@ namespace Adventure
         {
             Character.SaveChar();
             Combat.hostile();
-
+            Dialogue.locationlook();
+            Dialogue.gatherchat();
+            //need to be checked
+            loot.DialogueBonus();
+            //END
+            Dialogue.displaychat();
+            Character.temp = Console.ReadLine();
+            Character.UserInputs();
         }
     }
 }
