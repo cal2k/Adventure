@@ -25,78 +25,6 @@ namespace Adventure
         public static int CurrentID { get { return currentid; } set { currentid = value; } }
         public static int LocationID {  get { return locationid; } set { locationid = value; } }
         static public int input;
-
-        //new char
-        public static void NewChar()
-        {
-                Console.WriteLine("Character's name:");
-                Name = Console.ReadLine();
-                validname();
-        }
-        private static void validname()
-        {
-            Querys.query = "SELECT COUNT (name) from char WHERE name = '" + Character.Name + "'";
-            Querys.Count();
-            if(Querys.count>0)
-            {
-                Console.Clear();
-                Console.WriteLine("Character name already in use.");
-            }
-            else
-            {
-                Character.Health = 10;
-                Character.Wounds = 0;
-                Character.Items = "x";
-                Character.Armor = "x";
-                Character.Weapon = "x";
-                Character.Gold = 5;
-                Character.CurrentID = 1;
-                Character.locationid = 1;
-
-                Querys.query = "insert into char (name, health, wounds, items, armor, weapon, gold, currentid, locationid)" +
-                "values('" + Character.Name + "', '" + Character.Health + "', '" + Character.Wounds + "', '" + Character.Items +
-                "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "', '" + Character.LocationID + "')";
-
-                Querys.Insert();
-                Program.game();
-            }
-        }
-
-        //load char
-        public static void LoadChar()
-        {
-            Console.WriteLine("Characters name?");
-            Name = Console.ReadLine();
-            Querys.query = "select * from char where name = '" + Name + "'";
-            Querys.LoadChar();
-            Program.game();
-        }
-        static public void SaveChar()
-        {
-            Querys.query = "update char set health = '" + health + "', wounds = '" + Wounds + "', items = '" + items + "', armor = '" + armor + "', weapon = '" + weapon + "', gold = '" + 
-                gold + "', currentid = '" + currentid + "', locationid = '" + LocationID + "' where name = '" + Name + "'";
-            Querys.Insert();
-        }
-
-
-        public static void UserInputs()
-        {
-            if (temp == "I")
-            {
-                Inventory();
-            }
-        }
-        public static void Inventory()
-        {
-            Console.WriteLine("Inventory");
-            Console.ReadLine();
-            //triggerd by user input i
-            //gather list of items weapons and armor on character split and display list with number for selection
-            //equip item by typing equip + item number
-            //updates char table
-            //runs load char to get back to the same spot
-            
-        }
     }
     class Querys
     {
@@ -286,6 +214,20 @@ namespace Adventure
             }
 
         }
+
+        public static void levelchange()
+        {
+            if (Character.LocationLookup != "x")
+            {
+                string[] temparray = new string[2];
+                temparray = Character.LocationLookup.Split(',');
+                Character.LocationID = Convert.ToInt32(temparray[0]);
+                Character.CurrentID = Convert.ToInt32(temparray[1]);
+
+                locationlook();
+                gatherchat();
+            }
+        }
     }
     class Combat
     {
@@ -344,89 +286,17 @@ namespace Adventure
 
         }
     }
-    class Program
+    class Machanices
     {
-        static void Main(string[] args)
+        //INPUTS
+        public static void KeyChecker()
         {
-            menu();
-        }
-        static void menu()
-        {
-            bool valid = false;
-            string menutext = "1 - New Game,2 - Load Character,3 - Quit";
-            string[] menu = menutext.Split(',');
-            int input;
-
-            while (valid == false)
+            if (Character.temp == "I")
             {
-                Console.WriteLine(" ___                             _    _   _                     _");
-                Console.WriteLine("| _ \\  ___  ___  __  __  ___  __| |  | | / / 0  __   __ ___  __| | ___  __  __");
-                Console.WriteLine("|| || |   ||   ||  \\/  || 0_||    |  | |/ /  _ |  \\ | ||   ||    ||   ||  \\/  |");
-                Console.WriteLine("||_|| | 0 || 0 || |\\/| || |_ | 0  |  | |\\ \\ | || |\\\\| ||0  || 0  || 0 || |\\/| |");
-                Console.WriteLine("|___/ |___||___||_|  |_||___||____|  |_| \\_\\|_||_| \\__||__ ||____||___||_|  |_|");
-                Console.WriteLine("                                                       ||_||");
-                Console.WriteLine("                                                       |___|");
-                Console.WriteLine("");
-               
-                for(int i = 0; i < menu.Count(); i ++)
-                {
-                    Console.WriteLine(menu[i]);
-                }
-
-                Character.temp = Console.ReadLine();
-                Character.UserInputs();
-                try
-                {
-                    input = Convert.ToInt32(Character.temp);
-                    switch(input)
-                    {
-                        case 1:
-                            Console.Clear();
-                            Character.NewChar();
-                            break;
-                        case 2:
-                            Console.Clear();
-                            Character.LoadChar();
-                            break;
-                        case 3:
-                            Environment.Exit(0);
-                            break;
-                        default:
-                            Console.Clear();
-                            Console.WriteLine("Invalid selection");
-                            break;
-
-                    }
-                }
-                catch(Exception)
-                {
-                    Console.Clear();
-                    Console.WriteLine("Invalid selection");
-                }                
+                Inventory();
             }
         }
-
-        public static void game()
-        {
-            bool valid = false;
-            while (valid == false)
-            {
-                Character.SaveChar();
-                Combat.hostile();
-                Dialogue.locationlook();
-                Dialogue.gatherchat();
-                //need to be checked
-                loot.DialogueBonus();
-                //END
-                levelchange();
-                Dialogue.displaychat();
-                Character.temp = Console.ReadLine();
-                Character.UserInputs();
-                validinput();
-            }
-        }
-
-        public static void validinput()
+        public static void ValidSelection()
         {
             //check if option selection is valid
             try
@@ -455,19 +325,149 @@ namespace Adventure
             }
         }
 
-        public static void levelchange()
+        //CHARACTER 
+        public static void NewChar()
         {
-            if (Character.LocationLookup != "x")
-            {
-                string[] temparray = new string[2];
-                temparray = Character.LocationLookup.Split(',');
-                Character.LocationID = Convert.ToInt32(temparray[0]);
-                Character.CurrentID = Convert.ToInt32(temparray[1]);
+            Console.WriteLine("Character's name:");
+            Character.Name = Console.ReadLine();
 
-                Dialogue.locationlook();
-                Dialogue.gatherchat();
+            Querys.query = "SELECT COUNT (name) from char WHERE name = '" + Character.Name + "'";
+            Querys.Count();
+            if (Querys.count > 0)
+            {
+                Console.Clear();
+                Console.WriteLine("Character name already in use.");
+            }
+            else
+            {
+                Character.Health = 10;
+                Character.Wounds = 0;
+                Character.Items = "x";
+                Character.Armor = "x";
+                Character.Weapon = "x";
+                Character.Gold = 5;
+                Character.CurrentID = 1;
+                Character.LocationID = 1;
+
+                Querys.query = "insert into char (name, health, wounds, items, armor, weapon, gold, currentid, locationid)" +
+                "values('" + Character.Name + "', '" + Character.Health + "', '" + Character.Wounds + "', '" + Character.Items +
+                "', '" + Character.Armor + "', '" + Character.Weapon + "', '" + Character.Gold + "', '" + Character.CurrentID + "', '" + Character.LocationID + "')";
+
+                Querys.Insert();
+                Program.game();
             }
         }
+        public static void LoadChar()
+        {
+            Console.WriteLine("Characters name?");
+            Character.Name = Console.ReadLine();
+            Querys.query = "select * from char where name = '" + Character.Name + "'";
+            Querys.LoadChar();
+            Program.game();
+        }
+        static public void SaveChar()
+        {
+            Querys.query = "update char set health = '" + Character.Health + "', wounds = '" + Character.Wounds + "', items = '" + Character.Items + "', armor = '" + Character.Armor + "', weapon = '" + Character.Weapon + "', gold = '" +
+                Character.Gold + "', currentid = '" + Character.CurrentID + "', locationid = '" + Character.LocationID + "' where name = '" + Character.Name + "'";
+            Querys.Insert();
+        }
+
+        //
+        public static void Inventory()
+        {
+            Console.WriteLine("Inventory");
+            Console.ReadLine();
+            //triggerd by user input i
+            //gather list of items weapons and armor on character split and display list with number for selection
+            //equip item by typing equip + item number
+            //updates char table
+            //runs load char to get back to the same spot
+
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            menu();
+        }
+        static void menu()
+        {
+            bool valid = false;
+            string menutext = "1 - New Game,2 - Load Character,3 - Quit";
+            string[] menu = menutext.Split(',');
+            int input;
+
+            while (valid == false)
+            {
+                Console.WriteLine(" ___                            _    _   _                     _");
+                Console.WriteLine("| _ \\ ___  ___  __  __  ___  __| |  | | / / _  __   __ ___  __| | ___  __  __");
+                Console.WriteLine("|| |||   ||   ||  \\/  || 0_||    |  | |/ / | ||  \\ | ||   ||    ||   ||  \\/  |");
+                Console.WriteLine("||_||| 0 || 0 || |\\/| || |_ | 0  |  | |\\ \\ | || |\\\\| || 0 || 0  || 0 || |\\/| |");
+                Console.WriteLine("|___/|___||___||_|  |_||___||____|  |_| \\_\\|_||_| \\__||__ ||____||___||_|  |_|");
+                Console.WriteLine("                                                      ||_||");
+                Console.WriteLine("                                                      |___|");
+                Console.WriteLine("");
+               
+                for(int i = 0; i < menu.Count(); i ++)
+                {
+                    Console.WriteLine(menu[i]);
+                }
+
+                Character.temp = Console.ReadLine();
+                Machanices.ValidSelection();
+                try
+                {
+                    input = Convert.ToInt32(Character.temp);
+                    switch(input)
+                    {
+                        case 1:
+                            Console.Clear();
+                            Machanices.NewChar();
+                            break;
+                        case 2:
+                            Console.Clear();
+                            Machanices.LoadChar();
+                            break;
+                        case 3:
+                            Environment.Exit(0);
+                            break;
+                        default:
+                            Console.Clear();
+                            Console.WriteLine("Invalid selection");
+                            break;
+
+                    }
+                }
+                catch(Exception)
+                {
+                    Console.Clear();
+                    Console.WriteLine("Invalid selection");
+                }                
+            }
+        }
+
+        public static void game()
+        {
+            bool valid = false;
+            while (valid == false)
+            {
+                Machanices.SaveChar();
+                Combat.hostile();
+                Dialogue.locationlook();
+                Dialogue.gatherchat();
+                loot.DialogueBonus();
+                Dialogue.levelchange();
+                Dialogue.displaychat();
+                Character.temp = Console.ReadLine();
+                Machanices.KeyChecker();
+                Machanices.ValidSelection();
+            }
+        }
+
+        
+
+        
 
         
     }
