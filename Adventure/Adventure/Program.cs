@@ -25,7 +25,6 @@ namespace Adventure
         public static int CurrentID { get { return currentid; } set { currentid = value; } }
         public static int LocationID {  get { return locationid; } set { locationid = value; } }
         static public int input;
-        private static bool valid = false;
 
         //new char
         public static void NewChar()
@@ -85,34 +84,6 @@ namespace Adventure
             if (temp == "I")
             {
                 Inventory();
-            }
-            else
-            {
-                //check if option selection is valid
-                try
-                {
-                    input = Convert.ToInt32(temp);
-                }
-                catch (Exception ex)
-                {
-                    Console.Clear();
-                    Dialogue.displaychat();
-                }
-
-                input = input - 1;
-                if (input >= Dialogue.count)
-                {
-                    Console.Clear();
-                    Dialogue.displaychat();
-                }
-                else
-                {
-                    Console.Clear();
-                    Character.CurrentID = Convert.ToInt32(Character.LocationLookup[input]);
-                    Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
-                    Querys.Insert();
-                    Dialogue.displaychat();
-                }
             }
         }
         public static void Inventory()
@@ -284,7 +255,7 @@ namespace Adventure
     }
     class Dialogue  
     {
-        static public string wdud = "What do you do?", read;
+        static public string wdud = "What do you do?";
         static public string Chat, optionsworking, lookupsworking, bonusworking;
         static public string[] Options = new string[5], Lookup = new string[5];
         static public int count;
@@ -437,16 +408,67 @@ namespace Adventure
 
         public static void game()
         {
-            Character.SaveChar();
-            Combat.hostile();
-            Dialogue.locationlook();
-            Dialogue.gatherchat();
-            //need to be checked
-            loot.DialogueBonus();
-            //END
-            Dialogue.displaychat();
-            Character.temp = Console.ReadLine();
-            Character.UserInputs();
+            bool valid = false;
+            while (valid == false)
+            {
+                Character.SaveChar();
+                Combat.hostile();
+                Dialogue.locationlook();
+                Dialogue.gatherchat();
+                //need to be checked
+                loot.DialogueBonus();
+                //END
+                levelchange();
+                Dialogue.displaychat();
+                Character.temp = Console.ReadLine();
+                Character.UserInputs();
+                validinput();
+            }
         }
+
+        public static void validinput()
+        {
+            //check if option selection is valid
+            try
+            {
+                Character.input = Convert.ToInt32(Character.temp);
+            }
+            catch (Exception ex)
+            {
+                Console.Clear();
+                Dialogue.displaychat();
+            }
+
+            Character.input = Character.input - 1;
+            if (Character.input >= Dialogue.count)
+            {
+                Console.Clear();
+                Dialogue.displaychat();
+            }
+            else
+            {
+                Console.Clear();
+                Character.CurrentID = Convert.ToInt32(Dialogue.Lookup[Character.input]);
+                Querys.query = "update char set currentid = '" + Character.CurrentID + "' where name = '" + Character.Name + "'";
+                Querys.Insert();
+                Dialogue.displaychat();
+            }
+        }
+
+        public static void levelchange()
+        {
+            if (Character.LocationLookup != "x")
+            {
+                string[] temparray = new string[2];
+                temparray = Character.LocationLookup.Split(',');
+                Character.LocationID = Convert.ToInt32(temparray[0]);
+                Character.CurrentID = Convert.ToInt32(temparray[1]);
+
+                Dialogue.locationlook();
+                Dialogue.gatherchat();
+            }
+        }
+
+        
     }
 }
