@@ -21,14 +21,14 @@ namespace Adventure
                 }
                 if (Dialogue.bonusworking.StartsWith("W"))
                 {
-                    Character.Weapon = Dialogue.bonusworking.Substring(1);
-                    Querys.query = "update char set weapon = '" + Character.Weapon + "' where name = '" + Character.Name + "'";
+                    Character.Weapon = Dialogue.bonusworking;
+                    Querys.query = "update char set items = '" +"," + Character.Weapon + "' where name = '" + Character.Name + "'";
                     Querys.Insert();
                 }
                 if (Dialogue.bonusworking.StartsWith("A"))
                 {
-                    Character.Armor = Dialogue.bonusworking.Substring(1);
-                    Querys.query = "update char set armor = '" + Character.Armor + "' where name = '" + Character.Name + "'";
+                    Character.Armor = Dialogue.bonusworking;
+                    Querys.query = "update char set items = '" +"," + Character.Armor + "' where name = '" + Character.Name + "'";
                     Querys.Insert();
                     Console.ReadLine();
                 }
