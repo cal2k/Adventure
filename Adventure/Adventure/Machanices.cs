@@ -124,5 +124,15 @@ namespace Adventure
             Console.WriteLine("Potion");
             Console.ReadLine();
         }
+
+        public static void ThreadingTest()
+        {
+            bool delay = false;
+            while (delay == false)
+            {
+                SaveChar();
+                System.Threading.Thread.Sleep(10000);
+            }
+        }
     }
 }

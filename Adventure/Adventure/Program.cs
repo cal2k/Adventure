@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Data.SQLite;
 
@@ -9,6 +10,7 @@ namespace Adventure
 {
     class Program
     {
+        static Thread Save = new Thread(Machanices.ThreadingTest);
         static void Main(string[] args)
         {
             menu();
@@ -71,10 +73,11 @@ namespace Adventure
 
         public static void game()
         {
+
+            Save.Start();
             bool valid = false;
             while (valid == false)
             {
-                Machanices.SaveChar();
                 Combat.hostile();
                 Dialogue.locationlook();
                 Dialogue.gatherchat();
